@@ -3,13 +3,12 @@
  * ============================================================================
  * BACKEND API CONFIGURATION
  * ============================================================================
+ * - Render Production:  "https://imagechain-backend.onrender.com"
  * - Local Development:  "http://127.0.0.1:8000"
- * - Render Production:  Replace with your deployed Render backend service URL
- *                       (e.g., "https://<your-service-name>.onrender.com")
  * ============================================================================
  */
-const API_BASE_URL = "http://127.0.0.1:8000";
-// const API_BASE_URL = "https://<your-render-backend-url>.onrender.com";
+const API_BASE_URL = "https://imagechain-backend.onrender.com";
+// const API_BASE_URL = "http://127.0.0.1:8000";
 
 // DOM Elements
 const connectionErrorEl = document.getElementById("connection-error");
