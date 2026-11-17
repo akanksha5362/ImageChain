@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ImageChain — Blockchain Image Authenticity & Tamper Detection</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Navigation / Header -->
+  <header class="header">
+    <div class="container header-container">
+      <div class="brand">
+        <div class="logo-icon">🔗</div>
+        <div>
+          <h1 class="title">ImageChain</h1>
+          <p class="subtitle">Blockchain-Based Image Authenticity &amp; Tamper Detection</p>
+        </div>
+      </div>
+      <div class="header-status">
+        <button id="refresh-all-btn" class="btn btn-outline" title="Refresh blockchain status">
+          🔄 Refresh
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-content">
+
+    <!-- Global Connection Alert (hidden by default) -->
+    <div id="connection-error" class="alert alert-error" style="display: none;">
+      <strong>⚠️ Backend Connection Error:</strong> Unable to connect to FastAPI at <code>http://127.0.0.1:8000</code>. Please make sure the backend server is running.
+    </div>
+
+    <!-- Blockchain Status Bar -->
+    <section class="status-bar-card">
+      <div class="status-item">
+        <span class="status-label">Blockchain Integrity:</span>
+        <span id="chain-status-badge" class="badge badge-loading">Checking...</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Total Blocks:</span>
+        <span id="total-blocks-count" class="status-value">-</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">PoW Difficulty:</span>
+        <span class="status-value font-mono">4 (Prefix: 0000)</span>
+      </div>
+      <div class="status-item status-msg">
+        <span id="chain-status-message" class="status-desc">Validating chain with backend...</span>
+      </div>
+    </section>
+
+    <!-- Two-Column Grid: Register & Verify -->
+    <div class="grid-two-col">
+
+      <!-- 1. Register Image Section -->
+      <section class="card action-card">
+        <div class="card-header">
+          <div class="card-icon register-icon">📤</div>
+          <div>
+            <h2 class="card-title">Register Image</h2>
+            <p class="card-subtitle">Calculate SHA-256 hash &amp; mine into a new blockchain block</p>
+          </div>
+        </div>
+
+        <form id="register-form" class="card-body">
+          <div class="file-upload-box" id="register-dropzone">
+            <input type="file" id="register-input" accept="image/*" required>
+            <div class="upload-placeholder">
+              <span class="upload-icon">📁</span>
+              <span id="register-file-name" class="upload-text">Choose an image or drop it here</span>
+              <span class="upload-hint">Supports PNG, JPG, JPEG, WEBP</span>
+            </div>
+          </div>
+
+          <button type="submit" id="register-btn" class="btn btn-primary btn-block">
+            <span class="btn-text">Register on Blockchain</span>
+            <span class="btn-spinner" style="display: none;">⏳ Mining Block (PoW)...</span>
+          </button>
+        </form>
+
+        <!-- Register Result Display -->
+        <div id="register-result" class="result-box" style="display: none;">
+          <div class="result-header">
+            <span class="badge badge-success" id="register-status-badge">Registered &amp; Mined</span>
+            <span id="register-time" class="result-timestamp"></span>
+          </div>
+
+          <div class="result-fields">
+            <div class="field-row">
+              <span class="field-label">File:</span>
+              <span id="reg-res-filename" class="field-value"></span>
+            </div>
+            <div class="field-row">
+              <span class="field-label">SHA-256 Hash:</span>
+              <span id="reg-res-imghash" class="field-value font-mono hash-text"></span>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Block Index:</span>
+              <span id="reg-res-blockidx" class="field-value font-bold"></span>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Block Hash:</span>
+              <span id="reg-res-blockhash" class="field-value font-mono hash-text"></span>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Status:</span>
+              <span id="reg-res-message" class="field-value text-muted"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Verify Image Section -->
+      <section class="card action-card">
+        <div class="card-header">
+          <div class="card-icon verify-icon">🔍</div>
+          <div>
+            <h2 class="card-title">Verify Image</h2>
+            <p class="card-subtitle">Check image authenticity &amp; detect any tampering</p>
+          </div>
+        </div>
+
+        <form id="verify-form" class="card-body">
+          <div class="file-upload-box" id="verify-dropzone">
+            <input type="file" id="verify-input" accept="image/*" required>
+            <div class="upload-placeholder">
+              <span class="upload-icon">🔍</span>
+              <span id="verify-file-name" class="upload-text">Choose an image to verify</span>
+              <span class="upload-hint">Upload original or modified version</span>
+            </div>
+          </div>
+
+          <button type="submit" id="verify-btn" class="btn btn-secondary btn-block">
+            <span class="btn-text">Verify Authenticity</span>
+            <span class="btn-spinner" style="display: none;">⏳ Verifying with Blockchain...</span>
+          </button>
+        </form>
+
+        <!-- Verify Result Display -->
+        <div id="verify-result" class="result-box" style="display: none;">
+          <div class="result-header">
+            <span id="verify-status-badge" class="badge"></span>
+          </div>
+
+          <p id="verify-res-message" class="verify-message"></p>
+
+          <div class="result-fields">
+            <div class="field-row">
+              <span class="field-label">File:</span>
+              <span id="ver-res-filename" class="field-value"></span>
+            </div>
+            <div class="field-row">
+              <span class="field-label">SHA-256 Hash:</span>
+              <span id="ver-res-imghash" class="field-value font-mono hash-text"></span>
+            </div>
+            <div class="field-row auth-only">
+              <span class="field-label">Found In Block:</span>
+              <span id="ver-res-blockidx" class="field-value font-bold"></span>
+            </div>
+            <div class="field-row auth-only">
+              <span class="field-label">Block Hash:</span>
+              <span id="ver-res-blockhash" class="field-value font-mono hash-text"></span>
+            </div>
+            <div class="field-row auth-only">
+              <span class="field-label">Block Timestamp:</span>
+              <span id="ver-res-timestamp" class="field-value"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Tampering Demonstration Section -->
+    <section class="card demo-card" id="tamper-demo-section">
+      <div class="card-header demo-header">
+        <div class="card-icon demo-icon">🛡️</div>
+        <div>
+          <h2 class="card-title">Tampering Demonstration</h2>
+          <p class="card-subtitle">Interactive Walkthrough: How ImageChain Detects Manipulation</p>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <!-- Visual Flow Diagram -->
+        <div class="flow-wrapper">
+          <h3 class="flow-title">ImageChain Verification Lifecycle Flow</h3>
+          <div class="flow-container">
+            <div class="flow-step">
+              <span class="flow-num">1</span>
+              <span class="flow-label">Original Image</span>
+            </div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-step">
+              <span class="flow-num">2</span>
+              <span class="flow-label">SHA-256 Hash</span>
+            </div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-step">
+              <span class="flow-num">3</span>
+              <span class="flow-label">PoW Mining</span>
+            </div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-step">
+              <span class="flow-num">4</span>
+              <span class="flow-label">Blockchain</span>
+            </div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-step">
+              <span class="flow-num">5</span>
+              <span class="flow-label">Verify Image</span>
+            </div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-step">
+              <span class="flow-num">6</span>
+              <span class="flow-label">Hash Match?</span>
+            </div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-step flow-decision">
+              <span class="flow-badge-auth">AUTHENTIC</span>
+              <span class="flow-slash">/</span>
+              <span class="flow-badge-tamp">TAMPERED</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-Step Demo Grid -->
+        <div class="demo-steps-grid">
+
+          <!-- Step 1: Register Original Image -->
+          <div class="demo-step-card">
+            <div class="demo-step-badge">Step 1</div>
+            <h4 class="demo-step-title">Register Original Image</h4>
+            <p class="demo-step-desc">Select an image to register and mine onto the blockchain.</p>
+            <div class="demo-upload-box">
+              <input type="file" id="demo-orig-input" accept="image/*">
+              <span id="demo-orig-filename" class="demo-filename-text">Choose Original Image</span>
+            </div>
+            <button id="demo-reg-btn" class="btn btn-primary btn-block btn-sm">
+              <span class="btn-text">1. Register Original</span>
+              <span class="btn-spinner" style="display: none;">⏳ Mining...</span>
+            </button>
+            <div id="demo-orig-result" class="demo-result-box" style="display: none;">
+              <div class="demo-field">
+                <span class="demo-label">Status:</span>
+                <span class="badge badge-success">Registered</span>
+              </div>
+              <div class="demo-field">
+                <span class="demo-label">Block Index:</span>
+                <span id="demo-res-orig-idx" class="font-bold"></span>
+              </div>
+              <div class="demo-field">
+                <span class="demo-label">Block Hash:</span>
+                <span id="demo-res-orig-blockhash" class="font-mono hash-text"></span>
+              </div>
+              <div class="demo-field">
+                <span class="demo-label">Original Hash:</span>
+                <span id="demo-res-orig-imghash" class="font-mono hash-text"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Verify Original Image -->
+          <div class="demo-step-card">
+            <div class="demo-step-badge">Step 2</div>
+            <h4 class="demo-step-title">Verify Original</h4>
+            <p class="demo-step-desc">Verify the original image to confirm its authentic state on-chain.</p>
+            <div class="demo-upload-box">
+              <input type="file" id="demo-ver-orig-input" accept="image/*">
+              <span id="demo-ver-orig-filename" class="demo-filename-text">Choose Same Original Image</span>
+            </div>
+            <button id="demo-ver-orig-btn" class="btn btn-secondary btn-block btn-sm">
+              <span class="btn-text">2. Verify Original</span>
+              <span class="btn-spinner" style="display: none;">⏳ Verifying...</span>
+            </button>
+            <div id="demo-ver-orig-result" class="demo-result-box" style="display: none;">
+              <div class="demo-field">
+                <span class="demo-label">Result:</span>
+                <span class="badge badge-success">AUTHENTIC</span>
+              </div>
+              <div class="demo-field">
+                <span class="demo-label">Calculated Hash:</span>
+                <span id="demo-res-ver-imghash" class="font-mono hash-text"></span>
+              </div>
+              <div class="demo-field">
+                <span class="demo-label">Matching Block:</span>
+                <span id="demo-res-ver-idx" class="font-bold"></span>
+              </div>
+              <p class="demo-note text-success">✔ Hash verified on blockchain.</p>
+            </div>
+          </div>
+
+          <!-- Step 3: Verify Modified/Tampered Image -->
+          <div class="demo-step-card">
+            <div class="demo-step-badge demo-step-badge-danger">Step 3</div>
+            <h4 class="demo-step-title">Verify Modified Image</h4>
+            <p class="demo-step-desc">Upload a modified or different image to demonstrate tamper detection.</p>
+            <div class="demo-upload-box">
+              <input type="file" id="demo-mod-input" accept="image/*">
+              <span id="demo-mod-filename" class="demo-filename-text">Choose Modified Image</span>
+            </div>
+            <button id="demo-ver-mod-btn" class="btn btn-danger btn-block btn-sm">
+              <span class="btn-text">3. Verify Modified</span>
+              <span class="btn-spinner" style="display: none;">⏳ Checking...</span>
+            </button>
+            <div id="demo-ver-mod-result" class="demo-result-box" style="display: none;">
+              <div class="demo-field">
+                <span class="demo-label">Result:</span>
+                <span class="badge badge-danger">TAMPERED / UNREGISTERED</span>
+              </div>
+              <div class="demo-field">
+                <span class="demo-label">Modified Hash:</span>
+                <span id="demo-res-mod-imghash" class="font-mono hash-text"></span>
+              </div>
+              <p class="demo-note text-danger">✖ Hash not found in blockchain. Tampering detected!</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Side-by-Side Comparison & Visual Explanation -->
+        <div id="demo-comparison-box" class="comparison-card">
+          <div class="comparison-header">
+            <span class="comparison-title">🔬 Cryptographic Hash Comparison</span>
+            <span id="comparison-badge" class="badge badge-danger">Original Hash ≠ Modified Hash</span>
+          </div>
+
+          <div class="comparison-grid">
+            <div class="comparison-pane orig-pane">
+              <div class="pane-header">
+                <span class="pane-icon">🛡️</span>
+                <strong>Original Image Hash</strong>
+              </div>
+              <div id="comp-orig-hash" class="pane-hash font-mono">Pending Original Registration / Upload</div>
+            </div>
+
+            <div class="comparison-vs">≠</div>
+
+            <div class="comparison-pane mod-pane">
+              <div class="pane-header">
+                <span class="pane-icon">⚠️</span>
+                <strong>Modified Image Hash</strong>
+              </div>
+              <div id="comp-mod-hash" class="pane-hash font-mono">Pending Modified Image Verification</div>
+            </div>
+          </div>
+
+          <blockquote class="explanation-quote">
+            💡 <strong>Why tampering was detected:</strong> &ldquo;Even a small change to the image produces a different SHA-256 hash. Since the new hash is not present in the blockchain, ImageChain identifies the image as tampered or unregistered.&rdquo;
+          </blockquote>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 3. Blockchain Explorer Section -->
+    <section class="card explorer-card">
+      <div class="card-header explorer-header">
+        <div class="explorer-title-group">
+          <div class="card-icon explorer-icon">⛓️</div>
+          <div>
+            <h2 class="card-title">Blockchain Explorer</h2>
+            <p class="card-subtitle">All cryptographic blocks stored permanently in the ledger</p>
+          </div>
+        </div>
+        <button id="refresh-chain-btn" class="btn btn-outline btn-sm">Refresh Chain</button>
+      </div>
+
+      <div class="card-body">
+        <div id="blocks-loading" class="empty-state">Loading blockchain records...</div>
+        <div id="blocks-container" class="blocks-list" style="display: none;"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <p><strong>ImageChain</strong> — College Project Demonstration &bull; Powered by FastAPI &amp; Custom Python Blockchain</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
