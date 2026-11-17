@@ -30,7 +30,7 @@
 
     <!-- Global Connection Alert (hidden by default) -->
     <div id="connection-error" class="alert alert-error" style="display: none;">
-      <strong>⚠️ Backend Connection Error:</strong> Unable to connect to FastAPI at <code>http://127.0.0.1:8000</code>. Please make sure the backend server is running.
+      <strong>⚠️ Backend Connection Error:</strong> Unable to connect to the ImageChain backend at <code id="backend-target-url">https://imagechain-backend.onrender.com</code>. If using Render free tier, the backend may take up to 60 seconds to spin up from sleep. Please wait a moment and click Refresh.
     </div>
 
     <!-- Blockchain Status Bar -->
@@ -384,6 +384,6 @@
     </div>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=2.0"></script>
 </body>
 </html>

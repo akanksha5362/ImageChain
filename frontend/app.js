@@ -12,6 +12,10 @@ const API_BASE_URL = "https://imagechain-backend.onrender.com";
 
 // DOM Elements
 const connectionErrorEl = document.getElementById("connection-error");
+const backendTargetUrl = document.getElementById("backend-target-url");
+if (backendTargetUrl) {
+  backendTargetUrl.textContent = API_BASE_URL;
+}
 const chainStatusBadge = document.getElementById("chain-status-badge");
 const chainStatusMessage = document.getElementById("chain-status-message");
 const totalBlocksCount = document.getElementById("total-blocks-count");
